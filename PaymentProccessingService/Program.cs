@@ -1,13 +1,11 @@
 ﻿using System.Configuration;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Application.Services;
 
 namespace PaymentProccessingService
 {
     public class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var input = ConfigurationManager.AppSettings["inputPath"];
             var output = ConfigurationManager.AppSettings["outputPath"];
@@ -19,7 +17,7 @@ namespace PaymentProccessingService
             }
 
             var paymentProccessing = new PaymentStatisticService(output);
-            paymentProccessing.ProccessDirectory(input!);
+            await paymentProccessing.ProccessDirectory(input!);
 
             ConfigureFileSystemWatcher(input, output, paymentProccessing);
             ConfigureMidnightNotifier(paymentProccessing);
@@ -28,8 +26,10 @@ namespace PaymentProccessingService
             Console.WriteLine($"Source path: {input}");
             Console.WriteLine($"Destination path: {output}");
 
-            Console.WriteLine("\n\nType stop to stop the application");
+            Console.WriteLine("\n\nType \"stop\" to stop the application");
             while (Console.ReadLine() != "stop") { }
+
+            paymentProccessing.Log();
 
             Console.WriteLine("Application stoped");
         }
@@ -44,7 +44,7 @@ namespace PaymentProccessingService
         {
             var wacher = new FileSystemWatcher(input!);
 
-            wacher.Created += (sender, e) => paymentProccessing.ProccessFile(e.FullPath);
+            wacher.Created += async (sender, e) => await paymentProccessing.ProccessFile(e.FullPath);
             wacher.EnableRaisingEvents = true;
         }
     }

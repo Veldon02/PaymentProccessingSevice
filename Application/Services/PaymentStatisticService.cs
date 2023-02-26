@@ -27,17 +27,17 @@ namespace Application.Services
             return dir.FullName;
         }
 
-        public void ProccessDirectory(string input)
+        public async Task ProccessDirectory(string input)
         {
             var files = Directory.GetFiles(input);
 
             foreach (var file in files)
             {
-                ProccessFile(file);
+                await ProccessFile(file);
             }
         }
 
-        public void ProccessFile(string file)   //make async
+        public async Task ProccessFile(string file)   //make async
         {
 
             var extension = Path.GetExtension(file);
@@ -68,7 +68,7 @@ namespace Application.Services
                 }
             }
 
-            var cityStatistics = ProccessPayments(payments);  //make async
+            var cityStatistics = await Task.Run( () => { return ProccessPayments(payments); });  //make async
             _parsedFileCount++;
             _id++;
             _fileService.SerializeObjectIntoFile(cityStatistics, @$"{_outputPath}\output{_id}.json");
@@ -125,7 +125,6 @@ namespace Application.Services
                 InvalidFiles = _invalidFiles
             };
             _fileService.SerializeObjectIntoFile(logRecord, Path.Combine(_outputPath,"meta.log"));
-            Console.WriteLine("Залогував");
             Reset();
         }
 
